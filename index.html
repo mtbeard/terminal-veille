@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terminal Veille — Feed RSS / CVE</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ═══════════════════════════════
+       BOOT SCREEN
+       ═══════════════════════════════ -->
+  <div id="boot-screen">
+    <div class="boot-content">
+      <pre class="boot-logo">
+ ████████╗███████╗██████╗ ███╗   ███╗██╗███╗   ██╗ █████╗ ██╗
+    ██╔══╝██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗██║
+    ██║   █████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║███████║██║
+    ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██╔══██║██║
+    ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║███████╗
+    ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝
+  ██╗   ██╗███████╗██╗██╗     ██╗     ███████╗
+  ██║   ██║██╔════╝██║██║     ██║     ██╔════╝
+  ██║   ██║█████╗  ██║██║     ██║     █████╗
+  ╚██╗ ██╔╝██╔══╝  ██║██║     ██║     ██╔══╝
+   ╚████╔╝ ███████╗██║███████╗███████╗███████╗
+    ╚═══╝  ╚══════╝╚═╝╚══════╝╚══════╝╚══════╝</pre>
+      <div class="boot-subtitle">// THREAT INTELLIGENCE DASHBOARD v1.0.0 //</div>
+      <div id="boot-log"></div>
+      <div class="boot-cursor">█</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       MAIN TERMINAL
+       ═══════════════════════════════ -->
+  <div id="terminal" style="display:none">
+
+    <!-- CRT Scanlines -->
+    <div class="scanlines" aria-hidden="true"></div>
+
+    <!-- ── HEADER ── -->
+    <header id="header">
+      <div class="header-top">
+        <div class="logo-inline">
+          <span class="bracket">[</span>
+          <span class="logo-text">TERMINAL VEILLE</span>
+          <span class="bracket">]</span>
+          <span class="version">v1.0.0</span>
+        </div>
+        <div class="header-right">
+          <span id="clock" class="clock">00:00:00</span>
+          <span class="sep">│</span>
+          <span id="refresh-countdown" class="refresh-cd">REFRESH IN 05:00</span>
+        </div>
+      </div>
+      <div class="status-bar">
+        <span id="status-msg" class="status-info">IDLE</span>
+        <div class="stats" id="stats-bar">
+          <span class="stat-crit">CRIT&nbsp;<span id="count-crit">0</span></span>
+          <span class="stat-high">HIGH&nbsp;<span id="count-high">0</span></span>
+          <span class="stat-med">MED&nbsp;<span id="count-med">0</span></span>
+          <span class="stat-low">LOW&nbsp;<span id="count-low">0</span></span>
+          <span class="stat-total">TOTAL&nbsp;<span id="count-total">0</span></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── CONTROLS ── -->
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="prompt">$</span>
+        <input
+          type="text"
+          id="search-input"
+          placeholder="grep -i 'keyword'..."
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Recherche"
+        >
+        <span class="cursor-blink" aria-hidden="true">█</span>
+      </div>
+      <div class="filter-wrap" role="toolbar" aria-label="Filtres">
+        <button class="filter-btn active" data-filter="all"    >[ ALL ]</button>
+        <button class="filter-btn"        data-filter="critical">[ CRITICAL ]</button>
+        <button class="filter-btn"        data-filter="high"    >[ HIGH ]</button>
+        <button class="filter-btn"        data-filter="cve"     >[ CVE ]</button>
+        <button class="filter-btn"        data-filter="cyber"   >[ CYBER ]</button>
+        <button class="filter-btn"        data-filter="tech"    >[ TECH ]</button>
+        <button class="filter-btn"        data-filter="unread"  >[ UNREAD ]</button>
+        <button class="filter-btn"        data-filter="bookmarks">[ ★ ]</button>
+      </div>
+    </div>
+
+    <!-- ── FEED MAIN ── -->
+    <main id="feed-main" role="main">
+
+      <!-- Loading overlay -->
+      <div id="loading-overlay" class="loading-overlay" aria-live="polite">
+        <span class="load-spinner">⣾</span>
+        <span id="loading-msg">FETCHING FEEDS...</span>
+      </div>
+
+      <!-- Feed list -->
+      <div id="feed-list" role="list" aria-label="Articles"></div>
+
+      <!-- Empty state -->
+      <div id="empty-state" class="empty-state" style="display:none" aria-live="polite">
+        <pre>
+  ╔══════════════════════════════════╗
+  ║  NO RESULTS FOUND                ║
+  ║  Adjust filters or search query  ║
+  ╚══════════════════════════════════╝</pre>
+      </div>
+
+    </main>
+
+    <!-- ── FOOTER ── -->
+    <footer id="footer">
+      <div class="shortcuts" aria-label="Raccourcis clavier">
+        <kbd>R</kbd>&nbsp;Refresh &nbsp;
+        <kbd>/</kbd>&nbsp;Search &nbsp;
+        <kbd>Esc</kbd>&nbsp;Clear &nbsp;
+        <kbd>1‑8</kbd>&nbsp;Filters &nbsp;
+        <kbd>B</kbd>&nbsp;Bookmarks &nbsp;
+        <kbd>T</kbd>&nbsp;Theme &nbsp;
+        <kbd>M</kbd>&nbsp;Mark all read
+      </div>
+      <div class="footer-right">
+        <span>SOURCES&nbsp;<span id="feed-count">0</span></span>
+        <span class="sep">│</span>
+        <span>UPDATED&nbsp;<span id="last-update">--:--</span></span>
+      </div>
+    </footer>
+
+    <!-- Toast container -->
+    <div id="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
+  </div><!-- /#terminal -->
+
+  <!-- Scripts — order matters -->
+  <script src="js/config.js"></script>
+  <script src="js/rss.js"></script>
+  <script src="js/cve.js"></script>
+  <script src="js/terminal.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
