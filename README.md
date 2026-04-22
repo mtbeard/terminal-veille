@@ -87,7 +87,7 @@
 Aucune dépendance, aucune compilation requise.
 
 ```bash
-git clone https://github.com/<votre-username>/terminal-veille.git
+git clone https://github.com/mtbeard/terminal-veille.git
 cd terminal-veille
 
 # Ouvrir directement dans le navigateur
